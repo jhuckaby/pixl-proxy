@@ -1,0 +1,49 @@
+{
+  "name": "pixl-proxy",
+  "version": "1.0.0",
+  "description": "A simple HTTP proxy daemon, making use of Keep-Alives.",
+  "author": "Joseph Huckaby <jhuckaby@gmail.com>",
+  "homepage": "https://github.com/jhuckaby/pixl-proxy",
+  "license": "MIT",
+  "main": "lib/main.js",
+  "bin": {
+  	"proxyctl": "bin/proxyctl.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jhuckaby/pixl-proxy"
+  },
+  "bugs": {
+    "url": "https://github.com/jhuckaby/pixl-proxy/issues"
+  },
+  "keywords": [
+    "proxy",
+    "pool",
+    "daemon",
+    "http",
+    "queue"
+  ],
+  "dependencies": {
+    "async": "^2.0.0",
+    "stream-meter": "^1.0.4",
+    "pixl-args": "^1.0.0",
+    "pixl-config": "^1.0.0",
+    "pixl-class": "^1.0.0",
+    "pixl-tools": "^1.0.0",
+    "pixl-logger": "^1.0.0",
+    "pixl-request": "^1.0.0",
+    "pixl-perf": "^1.0.0",
+    "pixl-server": "^1.0.0",
+    "pixl-server-web": "^1.0.0",
+    "pixl-boot": "^1.0.0"
+  },
+  "devDependencies": {
+  	"pixl-unit": "^1.0.0"
+  },
+  "scripts": {
+  	"postinstall": "node bin/install.js",
+  	"test": "pixl-unit test/test.js",
+  	"boot": "pixl-boot install --script bin/proxyctl.sh",
+  	"unboot": "pixl-boot uninstall"
+  }
+}
