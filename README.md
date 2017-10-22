@@ -10,7 +10,7 @@
 - Supports HTTP and HTTPS on the front and/or back ends
 - Supports Keep-Alives on the front and/or back ends
 - Supports all standard HTTP methods, including HEAD, GET, POST and PUT
-- Extremely fast and stable (see [Benchmarking](#benchmarking) below)
+- Extremely fast and stable (see [Benchmarks](#benchmarks) below)
 - Small memory footprint, even for large HTTP requests / responses
 - Passthrough or active content encoding (GZip, Deflate, etc.)
 - In-memory queue system for blind proxy requests
@@ -82,7 +82,7 @@
 	* [Debug Log](#debug-log)
 	* [Error Log](#error-log)
 	* [Transaction Log](#transaction-log)
-- [Benchmarking](#benchmarking)
+- [Benchmarks](#benchmarks)
 - [License](#license)
 
 # Usage
@@ -1266,11 +1266,11 @@ You can also log transactions at the web server level.  These transactions repre
 
 Please note that client request transaction logging is a global setting, and affects all of your proxy configurations.  For more details, please see the [pixl-server-web logging](https://github.com/jhuckaby/pixl-server-web#logging) documentation.
 
-# Benchmarking
+# Benchmarks
 
-PixlProxy benchmark test results are below.  Testing was performed on a single AWS c4.2xlarge instance with Node.js v6.11, and Apache 2.4 as the back-end service.  Keep-Alives were used on the front and back ends, and everything was served over localhost.  The average total round trip time from test script through the proxy to Apache and back was **0.56ms**.  This is over 24 hours at 500 req/sec (43M total requests).  For comparison, hitting Apache directly was about **0.2ms** average total time, so PixlProxy is adding about **0.36ms** to each request.
+The PixlProxy benchmark test results are below.  Testing was performed on a single AWS c4.2xlarge instance with Node.js v6.11, and Apache 2.4 as the back-end web service.  Keep-Alives were used on the front and back ends, and everything was served over localhost.  The average total round trip time from test script through the proxy to Apache and back was **0.56ms**.  This is over 24 hours at 500 req/sec (43M total requests).  For comparison, hitting Apache directly was about **0.2ms** average total time, so PixlProxy is adding about **0.36ms** to each request.
 
-Only two small hiccups over 10ms were recorded by the test script in 24 hours of testing, and both were in the first second.  The very first request was 38ms total, due mainly to Node.js stretching its legs (loading code and libraries), and the TCP connect time.  The second hiccup was request #132, and measured at 13ms (was probably the first second rollover, where stats are collected).  After those two initial burps, it was completely smooth sailing for 24 full hours.  No garbage collection events were recorded.
+Only two small hiccups over 10ms were recorded by the test script in 24 hours of testing, and both were in the first second.  The very first request was 38ms total, due mainly to Node.js stretching its legs (loading code and libraries), and the TCP connect time.  The second hiccup was request #132, and measured at 13ms (was probably the first second rollover, where stats are collected).  After those two initial burps, however, it was completely smooth sailing for 24 full hours.  No garbage collection stalls were seen.
 
 Memory usage was only 79MB at the end of the test, which is well within the Node.js normal range.
 
