@@ -186,7 +186,7 @@ The top-level properties are all used by the [pixl-server](https://github.com/jh
 |---------------|------|-------------|
 | `log_dir` | String | Directory path where event log will be stored.  Can be a fully-qualified path, or relative from the PixlProxy base directory. |
 | `log_filename` | String | Event log filename, joined with `log_dir`.  See [Logging](#logging) below. |
-| `pid_file` |  | String | Partial path to the PID file, used by the daemon (relative from the PixlProxy base directory). |
+| `pid_file` | String | Partial path to the PID file, used by the daemon (relative from the PixlProxy base directory). |
 | `debug_level` | Integer | Debug logging level, larger numbers are more verbose, 1 is quietest, 10 is loudest. |
 
 ### WebServer Configuration
