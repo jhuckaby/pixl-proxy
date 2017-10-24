@@ -982,7 +982,8 @@ The PixlProxy Stats API also includes stats from the web server, which will be i
 		},
 		"bytes_in": 105248,
 		"bytes_out": 99728,
-		"num_requests": 368
+		"num_requests": 368,
+		"cur_sockets": 2
 	},
 	"sockets": {
 		"c3001": {
