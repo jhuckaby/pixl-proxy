@@ -410,7 +410,7 @@ The `http_user_agent` property allows you to set a default `User-Agent` header t
 
 #### http_timeout_ms
 
-The `http_timeout_ms` property allows you to set an HTTP timeout for back-end service requests.  This is measured as the *time to first byte*.  See the[pixl-request timeout documentation](https://github.com/jhuckaby/pixl-request#handling-timeouts) for more details on this.  The value should be an integer, and is measured in milliseconds.  Example (3 seconds):
+The `http_timeout_ms` property allows you to set an HTTP timeout for back-end service requests.  This is measured as the *time to first byte*.  See the [pixl-request timeout documentation](https://github.com/jhuckaby/pixl-request#handling-timeouts) for more details on this.  The value should be an integer, and is measured in milliseconds.  Example (3 seconds):
 
 ```js
 "MyPool1": {
@@ -913,8 +913,10 @@ The `counters` object contains simple counters that have accumulated for exactly
 | `bytes_received` | The total number of bytes received from the back-end service for the last second. |
 | `cur_pending_reqs` | The current number of pending requests in the queue, waiting to be sent. |
 | `cur_executing_reqs` | The current number of requests being executed (requests in progress to the back-end service). |
-| `cur_client_conns` | The current number of open client socket connections for this pool. |
+| `cur_client_conns` | The current number of open client socket connections for *all pools*. |
 | `cur_server_conns` | The current number of open back-end service connections for this pool. |
+
+Note that the `cur_client_conns` metric is measured at the web server level, so it is actually showing the number of open sockets across *all* pools, not necessarily just the current pool.  All other counters are for the current pool.
 
 The `minimums`, `maximums` and `averages` objects contain performance metrics for the last second.  The properties within these objects represent a particular phase of the downstream HTTP request to the back-end service, and its elapsed time in milliseconds.  For example, in the JSON stats shown above, the average total time for all the back-end service requests was 0.83ms.  However, the longest request took 22.753ms total time, as you can see in the `maximums` section.
 
