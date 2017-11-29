@@ -19,6 +19,7 @@
 			"Via": "PixlProxy 1.0"
 		},
 		
+		"http_clean_headers": true,
 		"http_log_requests": false,
 		"http_regex_log": ".+",
 		"http_recent_requests": 0,

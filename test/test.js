@@ -58,7 +58,8 @@ var server = new PixlServer({
 			"serve_static_files": false,
 			"validate_ssl_certs": true,
 			"insert_request_headers": {
-				"Via": "PixlProxyTest 1.0"
+				"Via": "PixlProxyTest 1.0",
+				"X-BadReqHeader": "Contains 😃 Unicode"
 			}
 		},
 		
@@ -73,9 +74,11 @@ var server = new PixlServer({
 			"http_timeout": 30,
 			"http_regex_json": "DISABLED",
 			"http_response_headers": {
-				"Via": "PixlProxyTest 1.0"
+				"Via": "PixlProxyTest 1.0",
+				"X-BadRespHeader": "Contains 😂 Unicode"
 			},
 			
+			"http_clean_headers": true,
 			"http_log_requests": false,
 			"http_regex_log": ".+",
 			"http_recent_requests": 10,
@@ -171,6 +174,12 @@ module.exports = {
 					test.ok( !!json.headers, "Found headers echoed in JSON response" );
 					test.ok( !!json.headers['x-forwarded-for'], "Found XFF in header echo" );
 					test.ok( json.headers['x-forwarded-for'].match(/127\.0\.0\.1|localhost/i), "Found correct IP in XFF: " + json.headers['x-forwarded-for'] );
+					
+					// check for filtering of bad (unicode) header chars
+					test.ok( !!json.headers['x-badreqheader'], "Found X-BadReqHeader header" );
+					test.ok( !!json.headers['x-badreqheader'].match(/^Contains\s+Unicode$/), "Correct X-BadReqHeader header value: " + resp.headers['x-badrespheader'] );
+					test.ok( !!resp.headers['x-badrespheader'], "Found X-BadRespHeader header" );
+					test.ok( !!resp.headers['x-badrespheader'].match(/^Contains\s+Unicode$/), "Correct X-BadRespHeader header value: " + resp.headers['x-badrespheader'] );
 					
 					test.done();
 				} 
