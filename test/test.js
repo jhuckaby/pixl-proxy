@@ -58,8 +58,7 @@ var server = new PixlServer({
 			"serve_static_files": false,
 			"validate_ssl_certs": true,
 			"insert_request_headers": {
-				"Via": "PixlProxyTest 1.0",
-				"X-BadReqHeader": "Contains 😃 Unicode"
+				"Via": "PixlProxyTest 1.0"
 			}
 		},
 		
@@ -74,8 +73,7 @@ var server = new PixlServer({
 			"http_timeout": 30,
 			"http_regex_json": "DISABLED",
 			"http_response_headers": {
-				"Via": "PixlProxyTest 1.0",
-				"X-BadRespHeader": "Contains 😂 Unicode"
+				"Via": "PixlProxyTest 1.0"
 			},
 			
 			"http_clean_headers": true,
@@ -174,12 +172,6 @@ module.exports = {
 					test.ok( !!json.headers, "Found headers echoed in JSON response" );
 					test.ok( !!json.headers['x-forwarded-for'], "Found XFF in header echo" );
 					test.ok( json.headers['x-forwarded-for'].match(/127\.0\.0\.1|localhost/i), "Found correct IP in XFF: " + json.headers['x-forwarded-for'] );
-					
-					// check for filtering of bad (unicode) header chars
-					test.ok( !!json.headers['x-badreqheader'], "Found X-BadReqHeader header" );
-					test.ok( !!json.headers['x-badreqheader'].match(/^Contains\s+Unicode$/), "Correct X-BadReqHeader header value: " + resp.headers['x-badrespheader'] );
-					test.ok( !!resp.headers['x-badrespheader'], "Found X-BadRespHeader header" );
-					test.ok( !!resp.headers['x-badrespheader'].match(/^Contains\s+Unicode$/), "Correct X-BadRespHeader header value: " + resp.headers['x-badrespheader'] );
 					
 					test.done();
 				} 
@@ -741,7 +733,28 @@ module.exports = {
 				} 
 			);
 		
-		} // testRetries
+		}, // testRetries
+		
+		function testBadHeader(test) {
+			// test header with bad characters in it
+			
+			// must hot modify config for this
+			this.proxy.pools.TestPool.custom_request_headers['X-BadHeader'] = "Hello 😂 There!";
+			
+			request.get( 'http://127.0.0.1:3020/json',
+				{
+					headers: {
+						'X-Proxy': "TestPool"
+					}
+				},
+				function(err, resp, data, perf) {
+					test.ok( !err, "No error from PixlRequest: " + err );
+					test.ok( !!resp, "Got resp from PixlRequest" );
+					test.ok( resp.statusCode == 500, "Got 500 response: " + resp.statusCode );
+					test.done();
+				} 
+			);
+		} // testBadHeader
 		
 	], // tests
 	
