@@ -56,7 +56,6 @@
 				"cache_dns_sec": 60,
 				"max_concurrent_requests": 10,
 				"max_requests_per_sec": 1000,
-				"max_queue_length": 100,
 				"follow_redirects": true,
 				"http_timeout_ms": 30000,
 				"append_to_x_forwarded_for": true,
