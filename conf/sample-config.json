@@ -60,6 +60,7 @@
 				"follow_redirects": true,
 				"http_timeout_ms": 30000,
 				"append_to_x_forwarded_for": true,
+				"preserve_host": true,
 				"retries": 5,
 				"log_perf_ms": 100,
 				"log_transactions": false,
