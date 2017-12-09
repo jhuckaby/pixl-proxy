@@ -43,7 +43,7 @@ var server = new PixlServer({
 					"cache_dns_sec": 60,
 					"max_concurrent_requests": 10,
 					"max_requests_per_sec": 10,
-					"max_queue_length": 10,
+					"use_queue": false,
 					"follow_redirects": true,
 					"http_timeout_ms": 1000,
 					"append_to_x_forwarded_for": true,
@@ -180,6 +180,10 @@ module.exports = {
 		
 		// HTTP HEAD (Standard)
 		function testStandardHead(test) {
+			
+			// reset perf
+			this.proxy.pools.TestPool.perf.reset();
+			
 			request.head( 'http://127.0.0.1:3020/index.html',
 				{
 					headers: {
@@ -203,6 +207,10 @@ module.exports = {
 		
 		// HTTP POST (Standard)
 		function testStandardPost(test) {
+			
+			// reset perf
+			this.proxy.pools.TestPool.perf.reset();
+			
 			request.post( 'http://127.0.0.1:3020/json',
 				{
 					headers: {
@@ -238,6 +246,10 @@ module.exports = {
 		
 		// HTTP POST + File Upload
 		function testMultipartPost(test) {
+			
+			// reset perf
+			this.proxy.pools.TestPool.perf.reset();
+			
 			request.post( 'http://127.0.0.1:3020/json',
 				{
 					headers: {
@@ -283,6 +295,10 @@ module.exports = {
 		// JSON POST
 		function testJSONPOST(test) {
 			// test JSON HTTP POST proxy request to webserver backend
+			
+			// reset perf
+			this.proxy.pools.TestPool.perf.reset();
+			
 			request.json( 'http://127.0.0.1:3020/json', { foo: 'barpost' },
 				{
 					headers: {
@@ -309,6 +325,10 @@ module.exports = {
 		// XML POST
 		function testXMLPOST(test) {
 			// test XML HTTP POST proxy request to webserver backend
+			
+			// reset perf
+			this.proxy.pools.TestPool.perf.reset();
+			
 			request.xml( 'http://127.0.0.1:3020/xml', { foo: 'barpost' },
 				{
 					headers: {
@@ -334,6 +354,9 @@ module.exports = {
 		
 		// Error (404)
 		function testFileNotFound(test) {
+			// reset perf
+			this.proxy.pools.TestPool.perf.reset();
+			
 			request.get( 'http://127.0.0.1:3020/noexist',
 				{
 					headers: {
@@ -352,6 +375,9 @@ module.exports = {
 		
 		// Error (Front-end Timeout)
 		function testFrontEndTimeout(test) {
+			// reset perf
+			this.proxy.pools.TestPool.perf.reset();
+			
 			request.get( 'http://127.0.0.1:3020/sleep?ms=750',
 				{
 					headers: {
@@ -369,6 +395,9 @@ module.exports = {
 		
 		// Error (Back-end Timeout)
 		function testBackEndTimeout(test) {
+			// reset perf
+			this.proxy.pools.TestPool.perf.reset();
+			
 			request.get( 'http://127.0.0.1:3020/sleep?ms=1500',
 				{
 					headers: {
@@ -388,6 +417,9 @@ module.exports = {
 		
 		// Unsupported Method (PUT)
 		function testUnsupportedMethod(test) {
+			// reset perf
+			this.proxy.pools.TestPool.perf.reset();
+			
 			request.request( 'http://127.0.0.1:3020/json',
 				{
 					method: 'PUT',
@@ -406,6 +438,9 @@ module.exports = {
 		
 		// Missing X-Proxy, incorrect hostname
 		function testMissingXProxy(test) {
+			// reset perf
+			this.proxy.pools.TestPool.perf.reset();
+			
 			request.get( 'http://localhost:3020/json',
 				function(err, resp, data, perf) {
 					test.ok( !err, "No error from PixlRequest: " + err );
@@ -418,6 +453,9 @@ module.exports = {
 		
 		// Incorrect X-Proxy
 		function testIncorrectXProxy(test) {
+			// reset perf
+			this.proxy.pools.TestPool.perf.reset();
+			
 			request.request( 'http://127.0.0.1:3020/json',
 				{
 					method: 'GET',
@@ -438,6 +476,7 @@ module.exports = {
 		function testXFFDisabled(test) {
 			// hot modify config
 			this.proxy.pools.TestPool.config.set('append_to_x_forwarded_for', false);
+			this.proxy.pools.TestPool.perf.reset();
 			
 			request.json( 'http://127.0.0.1:3020/json', false,
 				{
@@ -467,6 +506,9 @@ module.exports = {
 		
 		// follow_redirects
 		function testRedirectFollow(test) {
+			// reset perf
+			this.proxy.pools.TestPool.perf.reset();
+			
 			request.json( 'http://127.0.0.1:3020/redirect', false,
 				{
 					headers: {
@@ -493,6 +535,7 @@ module.exports = {
 		function testRedirectNoFollow(test) {
 			// disable follow redirects
 			this.proxy.pools.TestPool.request.setFollow( false );
+			this.proxy.pools.TestPool.perf.reset();
 			
 			request.get( 'http://127.0.0.1:3020/redirect',
 				{
@@ -513,6 +556,10 @@ module.exports = {
 		
 		function testPassthruCompressionEnabled(test) {
 			// test backend gzip passthrough compression
+			
+			// reset perf
+			this.proxy.pools.TestPool.perf.reset();
+			
 			request.get( 'http://127.0.0.1:3020/json',
 				{
 					headers: {
@@ -533,6 +580,10 @@ module.exports = {
 		
 		function testPassthruCompressionDisabled(test) {
 			// test backend gzip passthrough compression force disabled
+			
+			// reset perf
+			this.proxy.pools.TestPool.perf.reset();
+			
 			request.get( 'http://127.0.0.1:3020/json',
 				{
 					headers: {
@@ -552,6 +603,10 @@ module.exports = {
 		
 		function testBackEndStream(test) {
 			// test backend stream response (should be no content-length, and chunked)
+			
+			// reset perf
+			this.proxy.pools.TestPool.perf.reset();
+			
 			request.get( 'http://127.0.0.1:3020/stream',
 				{
 					headers: {
@@ -574,6 +629,10 @@ module.exports = {
 		function testLargeBuffer(test) {
 			// test backend buffer (large)
 			// over 128K so this will be streamed
+			
+			// reset perf
+			this.proxy.pools.TestPool.perf.reset();
+			
 			request.get( 'http://127.0.0.1:3020/large',
 				{
 					headers: {
@@ -594,6 +653,10 @@ module.exports = {
 		
 		function testZeroByteContent(test) {
 			// test zero byte content
+			
+			// reset perf
+			this.proxy.pools.TestPool.perf.reset();
+			
 			request.get( 'http://127.0.0.1:3020/zero',
 				{
 					headers: {
@@ -613,6 +676,10 @@ module.exports = {
 		
 		function testZeroByteContentWithLength(test) {
 			// test zero byte content with content-length
+			
+			// reset perf
+			this.proxy.pools.TestPool.perf.reset();
+			
 			request.get( 'http://127.0.0.1:3020/zero?cl=1',
 				{
 					headers: {
@@ -634,7 +701,7 @@ module.exports = {
 		// max_requests_per_sec
 		function testMaxRequestsPerSec(test) {
 			var self = this;
-			var time_start = Tools.timeNow();
+			var detected_tmr = false; // HTTP 429 Too Many Requests
 			
 			// reset perf
 			this.proxy.pools.TestPool.perf.reset();
@@ -648,22 +715,18 @@ module.exports = {
 							}
 						},
 						function(err, resp, data, perf) {
-							test.ok( !err, "No error from PixlRequest: " + err );
-							test.ok( !!resp, "Got resp from PixlRequest" );
-							test.ok( resp.statusCode == 200, "Got 200 response: " + resp.statusCode );
+							if (resp.statusCode == 429) detected_tmr = true;
 							callback();
 						}
 					);
 				},
 				function(err) {
-					var elapsed = Tools.timeNow() - time_start;
-					test.ok( elapsed >= 1.0, "More than 1 second elapsed for 20 requests: " + elapsed );
+					test.ok( detected_tmr, "Got 'HTTP 429 Too Many Requests' after flooding" );
 					test.done();
 				}
 			);
 		}, 
 		
-		// max_queue_length
 		// max_concurrent_requests
 		function testMaxQueueLength(test) {
 			var self = this;
@@ -737,6 +800,9 @@ module.exports = {
 		
 		function testBadHeader(test) {
 			// test header with bad characters in it
+			
+			// reset perf
+			this.proxy.pools.TestPool.perf.reset();
 			
 			// must hot modify config for this
 			this.proxy.pools.TestPool.custom_request_headers['X-BadHeader'] = "Hello 😂 There!";
