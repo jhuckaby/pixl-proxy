@@ -430,11 +430,21 @@ If your back-end service requires authentication (HTTP Basic Auth) you can provi
 
 #### append_to_x_forwarded_for
 
-The `append_to_x_forwarded_for` property controls whether or not to append the client IP address to the `X-Forwarded-For` header, when forwarding the request along to the back-end service.  Most "proper" proxies should do this, and thus the default setting is `true` (enabled).  However, there are cases when you may want to disable it.  For example, if you are running a localhost proxy (i.e. your front-end app connects to the proxy on 127.0.0.1), then it may be useless or undesirable for your back-end service to see `127.0.0.1` as the last IP on the XFF header.  Example:
+The `append_to_x_forwarded_for` property controls whether or not to append the client IP address to the `X-Forwarded-For` header, when forwarding the request along to the back-end service.  Most "proper" reverse proxies should do this, and thus the default setting is `true` (enabled).  However, there are cases when you may want to disable it.  For example, if you are running a localhost proxy (i.e. your front-end app connects to the proxy on 127.0.0.1), then it may be useless or undesirable for your back-end service to see `127.0.0.1` as the last IP on the XFF header.  Example:
 
 ```js
 "MyPool1": {
 	"append_to_x_forwarded_for": false
+}
+```
+
+#### preserve_host
+
+The `preserve_host` property controls whether or not to pass along the `Host` request header to the back-end service.  Most "proper" reverse proxies should do this, and thus the default setting is `true` (enabled).  However, there are cases when you may want to disable it.  When disabled, the back-end `Host` header gets set to the value of the [target_hostname](#target_hostname) property.  Example:
+
+```js
+"MyPool1": {
+	"preserve_host": false
 }
 ```
 
@@ -577,7 +587,7 @@ The `scrub_request_headers` property contains a regular expression wrapped in a 
 }
 ```
 
-The reason for scrubbing these headers it that they get either removed or replaced in the back-end request, so it is useless and often times an error to include them.  For example, the `Host` header is completely replaced every time, and `Connection` may differ between the client and back-end requests.
+The reason for scrubbing these headers it that they get either removed or replaced in the back-end request, so it is useless and often times an error to include them.  For example, the `Connection` header may differ between the client and back-end requests.
 
 #### scrub_response_headers
 
