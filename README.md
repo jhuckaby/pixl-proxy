@@ -20,8 +20,6 @@
 
 ## Table of Contents
 
-- [Overview](#overview)
-	* [Features](#features)
 - [Usage](#usage)
 	* [Installation](#installation)
 	* [Configuration](#configuration)
@@ -43,12 +41,14 @@
 			- [cache_dns_sec](#cache_dns_sec)
 			- [max_concurrent_requests](#max_concurrent_requests)
 			- [max_requests_per_sec](#max_requests_per_sec)
+			- [use_queue](#use_queue)
 			- [max_queue_length](#max_queue_length)
 			- [follow_redirects](#follow_redirects)
 			- [http_user_agent](#http_user_agent)
 			- [http_timeout_ms](#http_timeout_ms)
 			- [http_basic_auth](#http_basic_auth)
 			- [append_to_x_forwarded_for](#append_to_x_forwarded_for)
+			- [preserve_host](#preserve_host)
 			- [resp_code_success_match](#resp_code_success_match)
 			- [retries](#retries)
 			- [log_perf_ms](#log_perf_ms)
@@ -158,7 +158,6 @@ Here is a sample configuration file:
 				"cache_dns_sec": 60,
 				"max_concurrent_requests": 10,
 				"max_requests_per_sec": 1000,
-				"max_queue_length": 100,
 				"follow_redirects": true,
 				"http_timeout_ms": 30000,
 				"append_to_x_forwarded_for": true,
@@ -360,7 +359,7 @@ The `cache_dns_sec` property allows you to optionally cache the IP address of th
 
 #### max_concurrent_requests
 
-The `max_concurrent_requests` property sets the maximum amount of concurrent requests to allow through.  That is, the number of parallel requests to allow hitting the back-end service at any given time.  If more concurrent requests come in, they are queued, or rejected if the queue is full (see [Throttling](#throttling) below for details).  The default is `0` (unlimited).  Example:
+The `max_concurrent_requests` property sets the maximum amount of concurrent requests to allow through.  That is, the number of parallel requests to allow hitting the back-end service at any given time.  If more concurrent requests come in, they are rejected (see [Throttling](#throttling) below for details).  The default is `0` (unlimited).  Example:
 
 ```js
 "MyPool1": {
@@ -370,7 +369,7 @@ The `max_concurrent_requests` property sets the maximum amount of concurrent req
 
 #### max_requests_per_sec
 
-The `max_requests_per_sec` property sets the maximum number of requests to allow through per second.  If this amount is met in the space of a second, the extra requests are queued, or rejected if the queue is full (see [Throttling](#throttling) below for details).  The default is `0` (unlimited).  Example:
+The `max_requests_per_sec` property sets the maximum number of requests to allow through per second.  If this amount is reached in the space of a second, the extra requests are rejected (see [Throttling](#throttling) below for details).  The default is `0` (unlimited).  Example:
 
 ```js
 "MyPool1": {
@@ -378,9 +377,21 @@ The `max_requests_per_sec` property sets the maximum number of requests to allow
 }
 ```
 
+#### use_queue
+
+The `use_queue` property, when set to `true`, activates the [Queue System](#queue-system) for the specified pool.  This means that all incoming requests will be answered *immediately* with a special JSON response, and the back-end request is enqueued for asynchronous execution.  The client is never sent the back-end service's response, so the requests are essentially "blind".  Example usage:
+
+```js
+"MyPool1": {
+	"use_queue": true
+}
+```
+
+See [Queue System](#queue-system) below for details.
+
 #### max_queue_length
 
-The `max_queue_length` property specifies the maximum number of requests that can be queued up.  Normally requests are routed instantly, but for those that exceed either the [max_concurrent_requests](#max_concurrent_requests) or [max_requests_per_sec](#max_requests_per_sec) limits, they are pushed onto a queue.  If the queue becomes full, additional requests are rejected.  See [Throttling](#throttling) below for details.  The default is `0` (unlimited queue size).  Example:
+When `use_queue` is enabled, the `max_queue_length` property specifies the maximum number of requests that can be queued up.  If the queue becomes full, additional requests are rejected with a `HTTP 429 Too Many Requests` error.  See [Queue System](#queue-system) below for details.  The default is `0` (unlimited queue size).  Example:
 
 ```js
 "MyPool1": {
@@ -525,7 +536,7 @@ Here is an example transaction log entry:
 
 See [Logging](#logging) below for more details.
 
-Note that you can also log all incoming requests at the web server level (this is across all pools).  See the [pixl-server-web logging docs[(https://github.com/jhuckaby/pixl-server-web#logging) for details on enabling this.
+Note that you can also log all incoming requests at the web server level (this is across all pools).  See the [pixl-server-web logging docs](https://github.com/jhuckaby/pixl-server-web#logging) for details on enabling this.
 
 #### log_errors
 
@@ -782,7 +793,7 @@ Note that the default pool and [serve_static_files](#serve_static_files) are mut
 
 ## Throttling
 
-PixlProxy offers several ways to throttle requests to your back-end services.  You can set limits on the number of requests per second, as well as the number of concurrent requests.  Any requests that exceed your limits can be queued, or rejected immediately.
+PixlProxy offers several ways to throttle requests to your back-end services.  You can set limits on the number of requests per second, as well as the number of concurrent requests.  Any requests that exceed your limits are rejected immediately.
 
 To throttle based on the request rate, set the [max_requests_per_sec](#max_requests_per_sec) property.  Separately or in addition to this, you can also throttle by the number of concurrent requests, by setting the [max_concurrent_requests](#max_concurrent_requests) property.  If you use both, then whichever is reached first becomes the limiting factor.  Example configuration:
 
@@ -798,43 +809,25 @@ To throttle based on the request rate, set the [max_requests_per_sec](#max_reque
 }
 ```
 
-By default there are no request rate or concurrency limits.  However, see [Max Client Connections](#max-client-connections) below.
-
-Incoming requests over your limits will be queued, and serviced as soon as possible.  You also have control over the maximum size of the queue, by setting the [max_queue_length](#max_queue_length) property.  If a queue limit is specified and it fills up, any additional incoming requests are rejected with a `HTTP 429 Too Many Requests` response.  Example use:
-
-```js
-"PixlProxy": {
-	"pools": {
-		"MyPool1": {
-			"target_hostname": "test.myserver.com",
-			"max_concurrent_requests": 10,
-			"max_requests_per_sec": 1000,
-			"max_queue_length": 100
-		}
-	}
-}
-```
-
-Note that setting a `max_queue_length` of `0` means *infinite* (which is also the default).  If you don't want requests to be queued, set the max queue length to `1` instead.
+By default there are no request rate or concurrency limits.  However, see [Max Client Connections](#max-client-connections) below.  Incoming requests over your limits will be rejected with a `HTTP 429 Too Many Requests` response.
 
 ### Max Client Connections
 
-In addition to the throttling methods available in each pool, you can also limit connections globally at the web server level, by setting the [http_max_connections](https://github.com/jhuckaby/pixl-server-web#http_max_connections) property in the `WebServer` object.  This is a hard upper limit of allowed concurrent client-side connections.  If this limit is reached, new client connections are rejected immediately (by a socket hard-close).  Please set this property with extreme care.  It defaults to `0` (infinite, no limit).
+In addition to the throttling methods available in each pool, you can also limit connections globally at the web server level, by setting the [http_max_connections](https://github.com/jhuckaby/pixl-server-web#http_max_connections) property in the `WebServer` object.  This is a hard upper limit of allowed concurrent client-side connections (sockets).  If this limit is reached, new client connections are rejected immediately (by a socket hard-close).  Please set this property with extreme care.  It defaults to `0` (infinite, no limit).
 
-Note that the `http_max_connections` should always be equal or greater than all of your pool `max_queue_length` values added together.  Remember, this applies to the whole proxy server globally, and every queued request will have its own client socket connection open.
+Note that the `http_max_connections` should always be equal or greater than all of your pool `max_concurrent_requests` values added together.  Remember, this applies to the whole proxy server globally, and every queued request will have its own client socket connection open.
 
 ## Queue System
 
 If you have a use case where the client doesn't need to wait for the response from the back-end service, you can optionally send it "blind".  That is, the client request will be *immediately* answered, but the actual back-end request is queued up, and will execute in the background, keeping things within your throttling limits.  This is basically an in-memory message queue, except that all messages are HTTP requests.
 
-To use this, simply include a `X-Proxy-Queue` header with your client HTTP requests, and set it to `1` (or any true value).  This tells PixlProxy that the request should be enqueued, and executed in the background, returning a response to the client instantly.  The client response is a JSON document which will have a unique `request_id` identifier.  Example HTTP request:
+To use this feature, include a [use_queue](#use_queue) property in your pool configuration, and set it to `true`.  This tells PixlProxy that all requests should be enqueued, and executed in the background, returning a response to the client instantly.  The client response is a JSON document which will have a unique `request_id` identifier.  Example HTTP request:
 
 ```
 GET /proxy HTTP/1.1
 Host: localhost
 User-Agent: MyTestClient/1.0
 X-Proxy: MyPool1
-X-Proxy-Queue: 1
 ```
 
 And here is an example JSON response, sent back to the client immediately (before the back-end request is actually made):
@@ -1063,7 +1056,7 @@ For Keep-Alives on the back-end, you can configure this separately for each of y
 
 ## HTTPS
 
-PixlProxy supports HTTPS on both the front and back ends.  To enable it on the front-end web server, you will need an SSL certificate for your domain (both `.crt` and `.key` files), and then you need to set a few properties in the `WebServer` configuration object:
+PixlProxy supports HTTPS on both the front and back ends.  To enable it on the front-end web server, you will need an SSL certificate for your domain (both `.crt` and `.key` files), and then you need to set a few extra properties in the `WebServer` configuration object:
 
 | Property Name | Type | Description |
 |---------------|------|-------------|
@@ -1072,7 +1065,7 @@ PixlProxy supports HTTPS on both the front and back ends.  To enable it on the f
 | `https_cert_file` | String | Set this to a filesystem path to your `.crt` file for your SSL certificate. |
 | `https_key_file` | String | Set this to a filesystem path to your `.key` file for your SSL certificate. |
 
-Note that the web server listens for HTTPS requests *in addition to* normal HTTP requests.  If you only want to serve HTTPS, then set the [https_force](#https_force) property, which will redirect all incoming HTTP requests to HTTPS.
+Note that the web server listens for HTTPS requests *in addition to* normal HTTP requests.  If you only want to serve HTTPS, then set the [https_force](https://github.com/jhuckaby/pixl-server-web#https_force) property, which will redirect all incoming HTTP requests to HTTPS.
 
 See the [pixl-server-web HTTPS](https://github.com/jhuckaby/pixl-server-web#https) documentation for more details.
 
