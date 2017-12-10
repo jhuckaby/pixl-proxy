@@ -902,7 +902,8 @@ This would enable the Stats API on the `/proxy-stats` URI endpoint.  Hit it with
 				"wait": 0.64,
 				"receive": 0.04
 			},
-			"scale": 1000
+			"scale": 1000,
+			"cpu_pct": 2.56
 		}
 	},
 	"web": { /* see below */ }
@@ -940,6 +941,8 @@ Here are all the performance metrics that are tracked, and you may see in the `m
 | `total` | Total time of the entire HTTP transaction. |
 
 For more details on performance metrics, please see the [pixl-request performance metrics](https://github.com/jhuckaby/pixl-request#performance-metrics) docs.
+
+The `cpu_pct` property represents the percentage of one CPU core used by the proxy process during the last full second.  This is calculated by calling Node's [process.cpuUsage()](https://nodejs.org/api/process.html#process_process_cpuusage_previousvalue) function, and comparing it to the value from the previous second.  The value is a combination of both the "user" and "system" time.  This feature is only available in Node v6.1.0 and up.
 
 The JSON Stats API is protected by an ACL, so only "internal" requests can access it.  This is accomplished by using the ACL feature in the web server, for the stats API endpoint.  By default, the ACL is restricted to localhost, plus the [IPv4 private reserved space](https://en.wikipedia.org/wiki/Private_network), but you can customize it by including a [http_default_acl](https://github.com/jhuckaby/pixl-server-web#http_default_acl) property in your `WebServer` configuration.  Please see the [pixl-server-web ACL](https://github.com/jhuckaby/pixl-server-web#access-control-lists) documentation for more details on this.
 
@@ -1161,7 +1164,7 @@ Here are all the debug entries for an example request (with the debug level set 
 Here is an example of performance metrics, which are logged every second for every pool (if there is any activity at all).  This is logged as a level 2 debug event:
 
 ```
-[MyPool1][debug][2][Average Performance Metrics][{"scale":1000,"counters":{"requests":1,"bytes_sent":135,"bytes_received":228,"cur_pending_reqs":0,"cur_executing_reqs":0,"cur_client_conns":0,"cur_server_conns":1},"minimums":{"total":1020.389,"send":0,"connect":12.133,"wait":1005.918,"receive":1.521},"maximums":{"total":1020.389,"send":0,"connect":12.133,"wait":1005.918,"receive":1.521},"averages":{"total":1020.38,"send":0,"connect":12.13,"wait":1005.91,"receive":1.52}}]
+[MyPool1][debug][2][Average Performance Metrics][{"scale":1000,"counters":{"requests":1,"bytes_sent":135,"bytes_received":228,"cur_pending_reqs":0,"cur_executing_reqs":0,"cur_client_conns":0,"cur_server_conns":1},"minimums":{"total":1020.389,"send":0,"connect":12.133,"wait":1005.918,"receive":1.521},"maximums":{"total":1020.389,"send":0,"connect":12.133,"wait":1005.918,"receive":1.521},"averages":{"total":1020.38,"send":0,"connect":12.13,"wait":1005.91,"receive":1.52},"cpu_pct":0.256}]
 ```
 
 And here is the shutdown sequence:
