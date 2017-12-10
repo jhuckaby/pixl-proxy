@@ -234,6 +234,10 @@ Normally you shouldn't have to bother with this, but if you are trying to proxy 
 
 Make sure you understand the security ramifications, and completely trust the host you are connecting to, and the network you are on. Skipping the certificate validation step should really only be done in special circumstances, such as testing your own internal server with a self-signed cert.
 
+#### nice
+
+The optional `nice` property allows you to set the [process priority](https://en.wikipedia.org/wiki/Nice_%28Unix%29) of the proxy at startup.  This basically calls `renice` on the current process after forking a daemon, with the specified priority value (from `-20` to `+19`).  For example, to set the highest CPU priority for the proxy, set the `nice` property to `-20`.
+
 ### Pool Configuration
 
 Inside the `PixlProxy` object, you can define one or more "pools" (back-end proxy targets).  These should all go into a `pools` object, and can be named however you like.  The names are used for logging, and can also be used to target the proxy by custom header (but you can also target by other means).  Example config layout:
