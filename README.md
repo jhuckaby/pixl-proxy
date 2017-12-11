@@ -586,6 +586,21 @@ The `insert_response_headers` object allows you include additional HTTP headers 
 }
 ```
 
+#### degraded_perf_monitor
+
+The `degraded_perf_monitor` property activates the [Degraded Performance Monitoring](#degraded-performance-monitoring) feature, which will monitor the average performance of your back-end service, and if latency reaches a specified threshold, the proxy will include an additional header in all requests.  This can give your back-end service a "hint" that the server is in trouble.  Example configuration:
+
+```js
+"MyPool1": {
+	"degraded_perf_monitor": true,
+	"degraded_min_avg_ms": 100,
+	"degraded_min_req_sec": 10,
+	"degraded_min_uptime_sec": 60
+}
+```
+
+See the [Degraded Performance Monitoring](#degraded-performance-monitoring) section for more details.
+
 ### Advanced Properties
 
 Here are a few advanced properties that you should probably never have to worry about, but are listed here for reference and special use cases.
@@ -1101,6 +1116,43 @@ These three properties control active compression for HTTP responses, and all sh
 | [http_gzip_opts](https://github.com/jhuckaby/pixl-server-web#http_gzip_opts) | Object | This allows you to customize the Gzip settings, such as compression level and memory usage. |
 
 Note that active compression only kicks in if the response isn't already compressed, and the client declares support via the `Accept-Encoding` request header.  If this header is missing or doesn't include `gzip` then PixlProxy won't compress the response.
+
+## Degraded Performance Monitoring
+
+PixlProxy can optionally monitor the performance of the your downstream service, and provide a real-time indicator if the average latency increases beyond a specific threshold.  The idea here is, if your server is struggling, you can have the proxy send a "hint" to the downstream service, informing it that performance is degraded.  The service can then take whatever actions it deems appropriate, such as reduce functionality, skip certain requests, etc.
+
+The indicator itself is a downstream HTTP header called `X-Degraded`, and will be inserted into requests to your back-end service, if average latency is beyond a value you specify.  Example header:
+
+```
+X-Degraded: true
+```
+
+To activate the feature, set the `degraded_perf_monitor` property to `true` in your pool's configuration.  Example:
+
+```js
+"MyPool1": {
+	"degraded_perf_monitor": true,
+	"degraded_min_avg_ms": 100,
+	"degraded_min_req_sec": 10,
+	"degraded_min_uptime_sec": 60
+}
+```
+
+As you can see above, there are three additional properties you can set to tune the feature.  Here are descriptions of those:
+
+| Property Name | Type | Description |
+|---------------|------|-------------|
+| `degraded_min_avg_ms` | Number | The average request elapsed time threshold, in milliseconds.  If the average request time reaches or exceeds this number, the `X-Degraded` header will be included in all downstream requests. |
+| `degraded_min_req_sec` | Number | Optionally limit the feature so that the header will only be included if the average number of requests per second is equal to or greater than the specified value. |
+| `degraded_min_uptime_sec` | Number | Optionally limit the feature so that the header will only be included if the proxy uptime is over the specified number of seconds. |
+
+So in the configuration example shown above, the proxy would only consider performance to be in a degraded state (and start including the header) if all three conditions are met:
+
+- The average total time for downstream requests, measured over the previous full second, is equal to or greater than 100ms.
+- The incoming traffic rate is equal to or grater than 10 requests per second.
+- The proxy has been up and running for at least 60 seconds.
+
+The idea with `degraded_min_req_sec` is that you may want to skip the degraded header hint if the server is only receiving a very small amount of traffic.  In these cases the average request time may be inaccurate, because it has so few requests to calculate the average from.  Similarly, with `degraded_min_uptime_sec`, you can disable the feature if the proxy was only just started, as your back-end service may also still be starting up, and not yet running at full speed.
 
 # Logging
 
