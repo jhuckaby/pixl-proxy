@@ -1,6 +1,6 @@
 {
   "name": "pixl-proxy",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "A simple HTTP proxy daemon, making use of Keep-Alives.",
   "author": "Joseph Huckaby <jhuckaby@gmail.com>",
   "homepage": "https://github.com/jhuckaby/pixl-proxy",
