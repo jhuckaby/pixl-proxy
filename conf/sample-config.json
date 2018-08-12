@@ -3,7 +3,7 @@
 	"log_dir": "logs",
 	"log_filename": "proxy-events.log",
 	"log_columns": ["hires_epoch", "date", "hostname", "component", "category", "code", "msg", "data"],
-	"log_crashes": "1",
+	"log_crashes": true,
 	"pid_file": "logs/pid.txt",
 	"debug_level": 9,
 	
