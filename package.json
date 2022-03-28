@@ -1,6 +1,6 @@
 {
   "name": "pixl-proxy",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "A simple HTTP proxy daemon, making use of Keep-Alives.",
   "author": "Joseph Huckaby <jhuckaby@gmail.com>",
   "homepage": "https://github.com/jhuckaby/pixl-proxy",
@@ -28,7 +28,7 @@
     "stream-meter": "^1.0.4",
     "pixl-args": "^1.0.0",
     "pixl-config": "^1.0.0",
-    "pixl-class": "^1.0.0",
+    "pixl-class": "^1.0.3",
     "pixl-tools": "^1.0.0",
     "pixl-logger": "^1.0.0",
     "pixl-request": "^1.0.19",
